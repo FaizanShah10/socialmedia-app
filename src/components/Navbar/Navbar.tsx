@@ -1,25 +1,21 @@
-
-
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import React from "react";
 import DesktopNavbar from "./DesktopNavbar";
 import MobileNavbar from "./MobileNavbar";
 import Link from "next/link";
-import prisma from "@/lib/prisma";
-import {syncUser} from "@/actions/user.action";
+import { syncUser, getUserByClerkId } from "@/actions/user.action";
 
 const Navbar = async () => {
-
-
   const user = await currentUser();
-  if (user) await syncUser();
 
-  //2 tasks
-  //1. Check if the user is already present in db
-  //2. Create new user with clerk data in db
+  let dbUser = null;
+  if (user) {
+    // Sync user to DB if needed
+    await syncUser();
 
-  
-
+    // Get PostgreSQL user details (with userName)
+    dbUser = await getUserByClerkId(user.id);
+  }
 
   return (
     <nav className="sticky top-0 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
@@ -36,7 +32,8 @@ const Navbar = async () => {
           </div>
 
           <div className="md:hidden flex">
-            <MobileNavbar />
+            {/* Pass dbUser as prop to MobileNavbar */}
+            <MobileNavbar dbUser={dbUser} />
           </div>
         </div>
       </div>
