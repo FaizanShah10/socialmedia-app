@@ -1,5 +1,6 @@
 "use client";
 
+import type { CurrentUser, ProfileUser, Posts, PostCardPost } from "@/types";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,37 +16,16 @@ import { getUserPosts } from "@/actions/profile.action";
 import PostCard from "@/components/PostCard";
 import FollowButton from "@/components/FollowButton";
 
-type Post = {
-  id: string;
-  author: {
-    id: string;
-    image: string | null;
-    userName: string;
-    name: string;
-  };
-  comments: Array<{
-    id: string;
-    createdAt: Date;
-    authorId: string;
-    content: string;
-    postId: string;
-    author: {
-      id: string;
-      image: string | null;
-      userName: string;
-      name: string;
-    };
-  }>;
-  likes: Array<any>;
-  _count: {
-    [key: string]: number;
-  };
-  // Add any other fields returned by getUserPosts if necessary
-};
 
-const ClientProfilePage = ({ currentUser, profileUser }: any) => {
+const ClientProfilePage = ({
+  currentUser,
+  profileUser,
+}: {
+  currentUser: CurrentUser | null;
+  profileUser: ProfileUser;
+}) => {
   const [open, setOpen] = useState(false);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostCardPost[]>([]);
 
   const isOwnProfile = currentUser?.id === profileUser?.id;
   const formattedDate = format(new Date(profileUser?.createdAt), "MMMM yyyy");
@@ -54,7 +34,7 @@ const ClientProfilePage = ({ currentUser, profileUser }: any) => {
   const fetchPosts = async () => {
     try {
       const post = await getUserPosts(profileUser.id);
-      setPosts(post);
+      setPosts(posts);
     } catch {
       toast.error("Error Fetching Posts");
     }
@@ -84,7 +64,7 @@ const ClientProfilePage = ({ currentUser, profileUser }: any) => {
             <div className="flex-1 flex flex-col items-center sm:items-start mt-4 sm:mt-0">
               {/* Stats */}
               <div className="flex justify-center sm:justify-start items-center md:gap-12 gap-2 mb-4">
-                {["followers", "following", "posts"].map((key, idx) => (
+                {(["followers", "following", "posts"] as const).map((key, idx) => (
                   <div key={key} className="flex items-center">
                     <div className="text-center">
                       <div className="font-semibold">
@@ -194,7 +174,7 @@ const ClientProfilePage = ({ currentUser, profileUser }: any) => {
                       <PostCard
                         key={post.id}
                         post={post}
-                        dbUserId={currentUser.id}
+                        dbUserId={currentUser?.id}
                          // Optional: if you're on the profile page
                       />
                     ))

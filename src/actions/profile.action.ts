@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { Prisma, User, Posts } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 // Profile type with follower/following/post counts
 type UserProfile = Omit<

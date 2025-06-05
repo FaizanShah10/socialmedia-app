@@ -33,12 +33,15 @@ import {
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
 import Link from "next/link";
-import { PostCardProps } from "@/types";
+import { PostCardPost, PostCardProps } from "@/types";
 
 export default function PostCard({
   post,
   dbUserId,
-}: PostCardProps
+}: {
+  post: PostCardPost;
+  dbUserId?: string | null;
+}
 ) {
   const { user } = useUser();
   
@@ -60,6 +63,7 @@ export default function PostCard({
   // };
 
   const handleLike = async () => {
+    if(isLiking) return
     try {
       setisLiking(true);
       sethasLiked((prev: boolean) => !prev);

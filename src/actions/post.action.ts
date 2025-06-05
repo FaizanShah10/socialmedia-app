@@ -3,7 +3,7 @@
 import prisma from "@/lib/prisma";
 import { getDbUserId } from "./user.action";
 import { revalidatePath } from "next/cache";
-import { Prisma, Posts, Comments, Likes } from "@prisma/client";
+import { Prisma, Posts, Comments } from "@prisma/client";
 
 // Create a post
 export async function createPost(
