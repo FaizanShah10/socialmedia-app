@@ -5,7 +5,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/Navbar/Navbar";
 import Sidebar from "@/components/Sidebar";
-import {Toaster} from 'react-hot-toast'
+import { Toaster } from "react-hot-toast";
+import LocoScrollWrapper from "@/components/LocoScrollWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +31,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="en">
       <ClerkProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -40,8 +39,10 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Navbar />
-            <main className="py-8">
-                {/* container to center the content */}
+
+            {/* Locomotive Scroll Wrapper */}
+            <LocoScrollWrapper>
+              <main className="py-8">
                 <div className="max-w-7xl mx-auto px-4">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div className="hidden lg:block lg:col-span-3">
@@ -51,8 +52,9 @@ export default function RootLayout({
                   </div>
                 </div>
               </main>
+            </LocoScrollWrapper>
 
-            <Toaster/>
+            <Toaster />
           </ThemeProvider>
         </body>
       </ClerkProvider>
