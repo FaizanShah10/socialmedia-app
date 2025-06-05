@@ -1,13 +1,14 @@
-// /app/profile/[username]/page.tsx
+// app/profile/[username]/page.tsx
+
 import { getCurrentUser } from "@/actions/user.action";
 import { getProfileByUsername } from "@/actions/profile.action";
 import ClientProfilePage from "./ClientProfilePage";
 
-interface Props {
+type PageProps = {
   params: { username: string };
-}
+};
 
-const ProfilePage = async ({ params }: Props) => {
+const ProfilePage = async ({ params }: PageProps) => {
   const currentUser = await getCurrentUser();
   const profileUser = await getProfileByUsername(params.username);
 
