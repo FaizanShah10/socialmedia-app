@@ -50,7 +50,6 @@ const ClientProfilePage = ({ currentUser, profileUser }: any) => {
   const [isFollowing, setIsFollowing] = useState(false)
 
   const isOwnProfile = currentUser?.id === profileUser?.id;
-  console.log(currentUser.id)
   const formattedDate = format(new Date(profileUser?.createdAt), "MMMM yyyy");
 
   useEffect(() => {

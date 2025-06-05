@@ -17,7 +17,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { createComment, deleteComment, deletePost, toggleLike } from "@/actions/post.action";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
-import Picker from "@emoji-mart/react";
+// import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
 import {
@@ -53,13 +53,13 @@ export default function PostCard({
   );
   const [isLiking, setisLiking] = useState(false);
   const [optimisticLikes, setOptimisticLikes] = useState(post._count.likes);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // if(!user) return null
 
-  const addEmoji = (emoji: any) => {
-    setNewComment((prev) => prev + emoji.native);
-  };
+  // const addEmoji = (emoji: any) => {
+  //   setNewComment((prev) => prev + emoji.native);
+  // };
 
   const handleLike = async () => {
     try {
@@ -280,16 +280,16 @@ export default function PostCard({
                     />
 
                     {/* Emoji Button inside Textarea */}
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                       className="absolute bottom-2 right-3 text-gray-500 hover:text-white"
                     >
                       😊
-                    </button>
+                    </button> */}
 
                     {/* Emoji Picker Dropdown */}
-                    {showEmojiPicker && (
+                    {/* {showEmojiPicker && (
                       <div className="absolute bottom-14 right-0 z-50">
                         <Picker
                           data={data}
@@ -297,7 +297,7 @@ export default function PostCard({
                           theme="dark"
                         />
                       </div>
-                    )}
+                    )} */}
                   </div>
 
                   {/* Comment Button BELOW the Textarea */}
