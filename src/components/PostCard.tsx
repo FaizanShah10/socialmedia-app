@@ -33,7 +33,7 @@ import {
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
 import Link from "next/link";
-import { PostCardPost, PostCardProps } from "@/types";
+import { Comment, PostCardPost } from "@/types";
 
 export default function PostCard({
   post,
@@ -175,9 +175,10 @@ export default function PostCard({
         {/* Post Image */}
         <div className="rounded-lg overflow-hidden mt-4">
           <Image
-            src={post.image}
+            src={post.image || "/avatar.png"}
             alt=""
             className={`h-auto w-full object-cover `}
+            fill
           />
         </div>
 
@@ -224,7 +225,7 @@ export default function PostCard({
           <div className="space-y-4 pt-4 border-t">
             <div className="space-y-4">
               {/* DISPLAY COMMENTS */}
-              {post.comments.map((comment: any) => (
+              {post.comments.map((comment: Comment) => (
                 <div key={comment.id} className="flex space-x-3">
                   <Avatar className="size-8 flex-shrink-0">
                     <AvatarImage src={comment.author.image ?? "/avatar.png"} />

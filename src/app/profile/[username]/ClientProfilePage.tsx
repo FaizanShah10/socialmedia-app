@@ -1,6 +1,6 @@
 "use client";
 
-import type { CurrentUser, ProfileUser, Posts, PostCardPost } from "@/types";
+import type { CurrentUser, ProfileUser, PostCardPost } from "@/types";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ const ClientProfilePage = ({
   if (profileUser?.id) {
     fetchPosts();
   }
-}, [profileUser?.id]);
+}, [profileUser?.id, posts]);
 
 
  
