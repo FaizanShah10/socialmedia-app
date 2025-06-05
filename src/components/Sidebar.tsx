@@ -1,8 +1,8 @@
 import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
-import { LinkIcon, LocationEdit, MapPin } from "lucide-react";
+import { LinkIcon, MapPin } from "lucide-react";
 import React from "react";
 import { AvatarFallback } from "./ui/avatar";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { getUserByClerkId } from "@/actions/user.action";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";

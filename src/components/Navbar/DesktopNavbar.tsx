@@ -1,19 +1,11 @@
 import React from 'react'
 import { Button } from "../ui/button";
-import { useTheme } from "next-themes";
 import {
   BellIcon,
-  Home,
   HomeIcon,
-  Moon,
-  Sun,
-  User,
   UserIcon,
 } from "lucide-react";
 import {
-  SignedIn,
-  SignedOut,
-  SignIn,
   SignInButton,
   UserButton,
 } from "@clerk/nextjs";

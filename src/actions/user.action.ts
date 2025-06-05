@@ -3,7 +3,6 @@
 import prisma from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { use } from "react";
 
 //syncing user with Clerk and database
 export async function syncUser() {

@@ -5,6 +5,7 @@ import { XIcon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface UploadImageProps {
   onChange: (url: string) => void;
@@ -32,7 +33,7 @@ export default function UploadImage({ onChange, endPoints, value }: UploadImageP
   if (value) {
     return (
       <div className="relative w-full max-w-xs mx-auto">
-        <img
+        <Image
           src={value}
           alt="Upload"
           className="rounded-md w-40 h-40 object-cover"

@@ -18,7 +18,6 @@ import toast from "react-hot-toast";
 import { createComment, deleteComment, deletePost, toggleLike } from "@/actions/post.action";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 // import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
 
 import {
   AlertDialog,

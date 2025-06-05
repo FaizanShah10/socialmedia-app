@@ -9,7 +9,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SignInButton } from "@clerk/nextjs";
 import { CalendarIcon, Edit, LinkIcon, MapPinIcon } from "lucide-react";
 import { format } from "date-fns";
-import Link from "next/link";
 import EditProfile from "./EditProfile";
 import toast from "react-hot-toast";
 import { getUserPosts } from "@/actions/profile.action";
@@ -47,7 +46,6 @@ type Post = {
 const ClientProfilePage = ({ currentUser, profileUser }: any) => {
   const [open, setOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [isFollowing, setIsFollowing] = useState(false)
 
   const isOwnProfile = currentUser?.id === profileUser?.id;
   const formattedDate = format(new Date(profileUser?.createdAt), "MMMM yyyy");

@@ -4,18 +4,11 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Avatar } from './ui/avatar'
 import { AvatarImage } from '@radix-ui/react-avatar'
 import { Textarea } from './ui/textarea'
 import { ImageIcon, Loader2Icon, SendIcon } from 'lucide-react'
-import { getDbUserId } from '@/actions/user.action'
 import { useUser } from '@clerk/nextjs'
 import { useState } from "react"
 import { createPost } from "@/actions/post.action"
