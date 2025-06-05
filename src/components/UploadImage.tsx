@@ -6,14 +6,19 @@ import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import Image from "next/image";
+import type { UploadThingResponse } from "@/types";
 
 interface UploadImageProps {
   onChange: (url: string) => void;
-  endPoints: "postImage";
+  endPoints: "postImage"; // or extend if more endpoints are added
   value: string;
 }
 
-export default function UploadImage({ onChange, endPoints, value }: UploadImageProps) {
+export default function UploadImage({
+  onChange,
+  endPoints,
+  value,
+}: UploadImageProps) {
   const { isSignedIn } = useUser();
 
   useEffect(() => {
@@ -37,6 +42,8 @@ export default function UploadImage({ onChange, endPoints, value }: UploadImageP
           src={value}
           alt="Upload"
           className="rounded-md w-40 h-40 object-cover"
+          width={160}
+          height={160}
         />
         <button
           onClick={() => onChange("")}
@@ -46,18 +53,20 @@ export default function UploadImage({ onChange, endPoints, value }: UploadImageP
           <XIcon className="h-4 w-4 text-white" />
         </button>
       </div>
-    );  
+    );
   }
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-6 w-full">
       <UploadButton
         endpoint={endPoints}
-        onClientUploadComplete={(res: any) => {
-          onChange(res?.[0].url);
+        onClientUploadComplete={(res: UploadThingResponse[] | undefined) => {
+          if (res?.[0]?.url) {
+            onChange(res[0].url);
+          }
         }}
         onUploadError={(error: Error) => {
-          alert(`ERROR! ${error.message}`);
+          toast.error(`Upload failed: ${error.message}`);
         }}
       />
     </div>

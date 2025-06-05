@@ -1,54 +1,54 @@
-"use server"
+"use server";
 
 import prisma from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { Prisma, User } from "@prisma/client";
+import { SuggestedUser } from "@/types";
 
-//syncing user with Clerk and database
-export async function syncUser() {
-    const user = await currentUser();
-    const { userId } = await auth();
+// 1. Sync user from Clerk to DB
+export async function syncUser(): Promise<User | undefined> {
+  const user = await currentUser();
+  const { userId } = await auth();
 
-    if (!userId) {
-        throw new Error("No userId found from Clerk authentication.");
-    }
+  if (!userId) {
+    throw new Error("No userId found from Clerk authentication.");
+  }
 
-    const email = user?.emailAddresses?.[0]?.emailAddress;
-    if (!email) {
-        throw new Error("No email found for user.");
-    }
+  const email = user?.emailAddresses?.[0]?.emailAddress;
+  if (!email) {
+    throw new Error("No email found for user.");
+  }
 
-    try {
-        const existingUser = await prisma.user.findUnique({
-            where: {
-                clerkId: userId
-            }
-        });
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
 
-        if (existingUser) return existingUser;
+    if (existingUser) return existingUser;
 
-        const newUser = await prisma.user.create({
-            data: {
-                clerkId: userId,
-                name: `${user?.firstName || ""}  ${user?.lastName || ""}`,
-                userName: user?.username ?? email.split("@")[0],
-                email: email,
-                image: user?.imageUrl
-            }
-        });
+    const newUser = await prisma.user.create({
+      data: {
+        clerkId: userId,
+        name: `${user?.firstName || ""} ${user?.lastName || ""}`,
+        userName: user?.username ?? email.split("@")[0],
+        email: email,
+        image: user?.imageUrl,
+      },
+    });
 
-        return newUser;
-    } catch (error:any) {
-        console.log("Error creating new user in database", error.message);
-    }
+    return newUser;
+  } catch (error) {
+    console.error("Error creating new user in database:", (error as Error).message);
+  }
 }
 
-
-export async function getUserByClerkId(clerkId: string) {
+// 2. Get user by Clerk ID
+export async function getUserByClerkId(
+  clerkId: string
+): Promise<(User & { _count: { followers: number; following: number; posts: number } }) | null> {
   return prisma.user.findUnique({
-    where: {
-      clerkId,
-    },
+    where: { clerkId },
     include: {
       _count: {
         select: {
@@ -61,27 +61,48 @@ export async function getUserByClerkId(clerkId: string) {
   });
 }
 
-//getting current loggedIn user from database by userId
-export async function getDbUserId() {
+// 3. Get DB user ID from Clerk
+export async function getDbUserId(): Promise<string | null> {
   const { userId: clerkId } = await auth();
   if (!clerkId) return null;
 
   const user = await getUserByClerkId(clerkId);
-
   if (!user) throw new Error("User not found");
 
   return user.id;
 }
 
-//getting user from db using the dbUserId
-export async function getCurrentUser(){
+// 4. Get currently authenticated DB user
+type CurrentUserProfile = Omit<
+  Prisma.UserGetPayload<{
+    select: {
+      id: true;
+      userName: true;
+      name: true;
+      bio: true;
+      image: true;
+      location: true;
+      websiteUrl: true;
+      createdAt: true;
+      _count: {
+        select: {
+          followers: true;
+          following: true;
+          posts: true;
+        };
+      };
+    };
+  }>,
+  never
+>;
+
+export async function getCurrentUser(): Promise<CurrentUserProfile | null> {
   try {
-    const userId = await getDbUserId()
-    if(!userId) return null
+    const userId = await getDbUserId();
+    if (!userId) return null;
+
     const user = await prisma.user.findUnique({
-      where: {
-        id: userId
-      },
+      where: { id: userId },
       select: {
         id: true,
         userName: true,
@@ -95,64 +116,65 @@ export async function getCurrentUser(){
           select: {
             followers: true,
             following: true,
-            posts: true
-          }
-        }
-      }
-    })
+            posts: true,
+          },
+        },
+      },
+    });
 
-    return user
-  } catch (error: any) {
-    console.log("Error Getting User", error.message)
+    return user;
+  } catch (error) {
+    console.error("Error Getting User", (error as Error).message);
+    return null;
   }
 }
 
+// 5. Get random suggested user
+export async function getRandomSuggestedUsers(): Promise<SuggestedUser[] | null> {
+  const userId = await getDbUserId();
+  if (!userId) return null;
 
-//getting random suggested users
-export async function getRandomSuggestedUsers() {
-
-    const userId = await getDbUserId() //current user Id
-
-    if(!userId) return null
-
-    try {
-        const users = await prisma.user.findMany({
-            where: {
-                AND: [
-                    {NOT:{id: userId}}, //excluding ourselves
-                    {NOT: {
-                        followers: {
-                            some: {
-                                followerId: userId //excuding the followers already in our following list
-                            }
-                        }
-                    }}
-                ]
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        AND: [
+          { NOT: { id: userId } },
+          {
+            NOT: {
+              followers: {
+                some: { followerId: userId },
+              },
             },
-            select: {
-                id: true,
-                userName: true,
-                name: true,
-                image: true,
-                _count: {
-                    select: {
-                        followers: true
-                    }
-                }
-            },
-            take: 5
-        });
+          },
+        ],
+      },
+      select: {
+        id: true,
+        userName: true,
+        name: true,
+        image: true,
+        _count: {
+          select: {
+            followers: true,
+          },
+        },
+      },
+      take: 5,
+    });
 
-        return users;
-    } catch (error: any) {
-        console.log("Error Getting random suggested users", error.message);
-    }
+    return users;
+  } catch (error) {
+    console.error("Error Getting random suggested users", (error as Error).message);
+    return null;
+  }
 }
 
-export async function toggleFollow(targetUserId: string) {
+// 6. Toggle follow/unfollow
+export async function toggleFollow(
+  targetUserId: string
+): Promise<{ success: boolean; error?: string } | void> {
   try {
     const userId = await getDbUserId();
-
     if (!userId) return;
 
     if (userId === targetUserId) throw new Error("You cannot follow yourself");
@@ -185,12 +207,11 @@ export async function toggleFollow(targetUserId: string) {
             followingId: targetUserId,
           },
         }),
-
         prisma.notifications.create({
           data: {
             type: "FOLLOW",
-            userId: targetUserId, // user being followed
-            creatorId: userId, // user following
+            userId: targetUserId, // recipient
+            creatorId: userId,    // sender
           },
         }),
       ]);
@@ -199,7 +220,7 @@ export async function toggleFollow(targetUserId: string) {
     revalidatePath("/");
     return { success: true };
   } catch (error) {
-    console.log("Error in toggleFollow", error);
+    console.error("Error in toggleFollow:", (error as Error).message);
     return { success: false, error: "Error toggling follow" };
   }
 }

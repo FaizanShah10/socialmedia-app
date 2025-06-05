@@ -3,15 +3,18 @@
 import prisma from "@/lib/prisma";
 import { getDbUserId } from "./user.action";
 import { revalidatePath } from "next/cache";
+import { Prisma, Posts, Comments, Likes } from "@prisma/client";
 
-export async function createPost(postContent: string, postImageUrl: string) {
-  //getting current user from database --> GetDbUserId
+// Create a post
+export async function createPost(
+  postContent: string,
+  postImageUrl: string
+): Promise<{ success: boolean; post?: Posts; error?: string } | null> {
   const userId = await getDbUserId();
-
   if (!userId) return null;
 
   try {
-    const post = prisma.posts.create({
+    const post = await prisma.posts.create({
       data: {
         content: postContent,
         image: postImageUrl,
@@ -21,18 +24,20 @@ export async function createPost(postContent: string, postImageUrl: string) {
 
     revalidatePath("/");
     return { success: true, post };
-  } catch (error: any) {
-    console.log("Failed To Create Post", error.message);
-    return { success: false, error: "Failed To create Post" };
+  } catch (error) {
+    console.error("Failed To Create Post", (error as Error).message);
+    return { success: false, error: "Failed to create post" };
   }
 }
 
-export async function deletePost(postId: string) {
+// Delete a post
+export async function deletePost(
+  postId: string
+): Promise<{ success: boolean; error?: string } | null> {
   try {
     const userId = await getDbUserId();
     if (!userId) return null;
 
-    // Check if the post exists and belongs to the user
     const post = await prisma.posts.findUnique({
       where: { id: postId },
       select: { authorId: true },
@@ -42,20 +47,60 @@ export async function deletePost(postId: string) {
       return { success: false, error: "Post not found or unauthorized" };
     }
 
-    // Delete the post
     await prisma.posts.delete({
       where: { id: postId },
     });
 
     revalidatePath("/");
     return { success: true };
-  } catch (error: any) {
-    console.log("Failed to delete post", error.message);
+  } catch (error) {
+    console.error("Failed to delete post", (error as Error).message);
     return { success: false, error: "Failed to delete post" };
   }
 }
 
-export async function getPosts() {
+// Get posts
+type PostWithRelations = Prisma.PostsGetPayload<{
+  include: {
+    author: {
+      select: {
+        id: true;
+        name: true;
+        userName: true;
+        image: true;
+      };
+    };
+    likes: {
+      select: {
+        userId: true;
+      };
+    };
+    comments: {
+      include: {
+        author: {
+          select: {
+            id: true;
+            userName: true;
+            image: true;
+            name: true;
+          };
+        };
+      };
+    };
+    _count: {
+      select: {
+        likes: true;
+        comments: true;
+      };
+    };
+  };
+}>;
+
+export async function getPosts(): Promise<{
+  success: boolean;
+  posts?: PostWithRelations[];
+  error?: string;
+}> {
   try {
     const posts = await prisma.posts.findMany({
       include: {
@@ -96,20 +141,23 @@ export async function getPosts() {
       },
       orderBy: {
         createdAt: "desc",
-      }
+      },
     });
 
     return { success: true, posts };
-  } catch (error: any) {
-    console.log("Failed to get posts", error.message);
+  } catch (error) {
+    console.error("Failed to get posts", (error as Error).message);
     return { success: false, error: "Failed to get posts" };
   }
 }
 
-export async function createComment(postId: string, content: string) {
+// Create comment and notify
+export async function createComment(
+  postId: string,
+  content: string
+): Promise<{ success: boolean; comment?: Comments; error?: string } | void> {
   try {
-    const userId = await getDbUserId(); //current user from database
-
+    const userId = await getDbUserId();
     if (!userId) return;
     if (!content) throw new Error("Content is required");
 
@@ -120,19 +168,15 @@ export async function createComment(postId: string, content: string) {
 
     if (!post) throw new Error("Post not found");
 
-    // Create comment and notification in a transaction
     const [comment] = await prisma.$transaction(async (tx) => {
-      // Create comment first
       const newComment = await tx.comments.create({
         data: {
           content,
           authorId: userId,
           postId,
-          
         },
       });
 
-      // Create notification if commenting on someone else's post
       if (post.authorId !== userId) {
         await tx.notifications.create({
           data: {
@@ -151,31 +195,35 @@ export async function createComment(postId: string, content: string) {
     revalidatePath(`/`);
     return { success: true, comment };
   } catch (error) {
-    console.error("Failed to create comment:", error);
+    console.error("Failed to create comment", (error as Error).message);
     return { success: false, error: "Failed to create comment" };
   }
 }
 
-export async function deleteComment(commentId: string){
+// Delete comment
+export async function deleteComment(
+  commentId: string
+): Promise<{ success: boolean; error?: string } | void> {
   try {
     await prisma.comments.delete({
-      where: {
-        id: commentId
-      }
-    })
-    revalidatePath("/")
-  } catch (error: any) {
-      console.log("Failed to Delete Comment", error.message);
-      return { success: false, error: "Failed to Delete Comment" };
+      where: { id: commentId },
+    });
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete comment", (error as Error).message);
+    return { success: false, error: "Failed to delete comment" };
   }
 }
 
-export async function toggleLike(postId: string){
+// Like / unlike a post
+export async function toggleLike(
+  postId: string
+): Promise<{ success: boolean; error?: string } | null> {
   try {
     const userId = await getDbUserId();
     if (!userId) return null;
 
-    // Check if the post already has a like from the user
     const existingLike = await prisma.likes.findUnique({
       where: {
         userId_postId: {
@@ -183,18 +231,16 @@ export async function toggleLike(postId: string){
           postId,
         },
       },
-    })
+    });
 
-     const post = await prisma.posts.findUnique({
+    const post = await prisma.posts.findUnique({
       where: { id: postId },
       select: { authorId: true },
     });
 
-     if (!post) throw new Error("Post not found");
-
+    if (!post) throw new Error("Post not found");
 
     if (existingLike) {
-      // If the like exists, delete it
       await prisma.likes.delete({
         where: {
           userId_postId: {
@@ -204,46 +250,33 @@ export async function toggleLike(postId: string){
         },
       });
     } else {
-      // If the like does not exist, create the like and a notification only when the post is liked of someone else
       await prisma.$transaction([
         prisma.likes.create({
           data: {
-            userId, 
-            postId
-          }
+            userId,
+            postId,
+          },
         }),
         ...(post.authorId !== userId
           ? [
               prisma.notifications.create({
                 data: {
                   type: "LIKE",
-                  userId: post.authorId, // recipient (post author)
-                  creatorId: userId, // person who liked the post
+                  userId: post.authorId,
+                  creatorId: userId,
                   postId,
                 },
               }),
             ]
           : []),
-      ])
-      
+      ]);
     }
 
-    // Revalidate the path to update the UI
     revalidatePath("/");
     return { success: true };
-  } catch (error: any) {
-    console.log("Failed to toggle like", error.message);
+  } catch (error) {
+    console.error("Failed to toggle like", (error as Error).message);
     return { success: false, error: "Failed to toggle like" };
   }
 }
-
-export async function getCommentsBypostId(postId: string){
-  try {
-    
-  } catch (error: any) {
-    console.log("Failed to Get Comments", error.message);
-    return { success: false, error: "Failed to Get Comments" };
-  }
-}
-
 

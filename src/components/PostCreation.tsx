@@ -42,8 +42,8 @@ const PostCreation = () => {
             toast.success("Post Created")
             router.refresh() //refresh the page after successfully posting the image
           }
-      } catch (error: any) {
-        console.log("Error Creating Post", error.message)
+      } catch (error) {
+        console.log("Error Creating Post", (error as Error).message)
         toast.error("Error in Post Creation")
       } finally {
         setisPosting(false)

@@ -55,7 +55,7 @@ const ClientProfilePage = ({ currentUser, profileUser }: any) => {
     try {
       const post = await getUserPosts(profileUser.id);
       setPosts(post);
-    } catch (error) {
+    } catch {
       toast.error("Error Fetching Posts");
     }
   };

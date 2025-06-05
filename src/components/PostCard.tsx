@@ -33,14 +33,13 @@ import {
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
 import Link from "next/link";
+import { PostCardProps } from "@/types";
 
 export default function PostCard({
   post,
   dbUserId,
-}: {
-  post: any;
-  dbUserId?: string | null;
-}) {
+}: PostCardProps
+) {
   const { user } = useUser();
   
 
@@ -48,8 +47,8 @@ export default function PostCard({
   const [showComments, setShowComments] = useState(false);
   const [isCommenting, setisCommenting] = useState(false);
   const [hasLiked, sethasLiked] = useState(
-    post.likes.some((like: any) => like.userId === dbUserId)
-  );
+  post.likes.some((like) => like.userId === dbUserId)
+);
   const [isLiking, setisLiking] = useState(false);
   const [optimisticLikes, setOptimisticLikes] = useState(post._count.likes);
   // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -63,11 +62,11 @@ export default function PostCard({
   const handleLike = async () => {
     try {
       setisLiking(true);
-      sethasLiked((prev: number) => !prev);
+      sethasLiked((prev: boolean) => !prev);
       setOptimisticLikes((prev: number) => (hasLiked ? prev - 1 : prev + 1));
       await toggleLike(post.id);
     } catch (error) {
-      sethasLiked((prev: number) => !prev);
+      sethasLiked((prev: boolean) => !prev);
       setOptimisticLikes((prev: number) => (hasLiked ? prev + 1 : prev - 1));
       toast.error("An error occurred while liking the post.");
       console.error("Error liking post:", error);
@@ -80,6 +79,7 @@ export default function PostCard({
     try {
       const newComment = await createComment(postId, content);
       if (newComment?.success) {
+        setisCommenting(true)
         setNewComment("");
         toast.success("Comment added successfully");
         setShowComments(true);
@@ -170,7 +170,7 @@ export default function PostCard({
 
         {/* Post Image */}
         <div className="rounded-lg overflow-hidden mt-4">
-          <img
+          <Image
             src={post.image}
             alt=""
             className={`h-auto w-full object-cover `}

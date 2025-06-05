@@ -17,9 +17,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import UploadImage from "@/components/UploadImage";
- // adjust path if needed
+import type { EditProfileProps } from "@/types";
 
-const EditProfile = ({ open, setOpen, profileUser }: any) => {
+const EditProfile = ({ open, setOpen, profileUser }: EditProfileProps) => {
   const [bio, setBio] = useState(profileUser?.bio || "");
   const [location, setLocation] = useState(profileUser?.location || "");
   const [websiteUrl, setWebsiteUrl] = useState(profileUser?.websiteUrl || "");
@@ -32,7 +32,7 @@ const EditProfile = ({ open, setOpen, profileUser }: any) => {
     name: profileUser.name || "",
     bio: profileUser.bio || "",
     location: profileUser.location || "",
-    website: profileUser.website || "",
+    website: profileUser.websiteUrl || "",
   });
 
   const handleSave = async () => {
@@ -43,12 +43,12 @@ const EditProfile = ({ open, setOpen, profileUser }: any) => {
         bio,
         location,
         websiteUrl,
-        image, // include image in update payload
+        image,
       });
       toast.success("Profile updated successfully");
       setOpen(false);
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong");
     } finally {
       setIsSaving(false);

@@ -6,6 +6,7 @@ import SuggestedUser from '@/components/SuggestedUser'
 import PostCard from '@/components/PostCard'
 import { getPosts } from '@/actions/post.action'
 import { getDbUserId } from '@/actions/user.action'
+import { PostWithDetails } from '@/types'
 
 const HomePage = async () => {
 
@@ -21,7 +22,7 @@ const HomePage = async () => {
         {/* Post Creation */}
         <PostCreation/>
         {
-          posts.map((post: any) => (
+          posts.map((post: PostWithDetails) => (
             <PostCard key={post.id} post={post} dbUserId={dbUserId}/>
           ))
         }
