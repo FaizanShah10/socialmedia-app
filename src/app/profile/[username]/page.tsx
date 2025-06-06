@@ -1,15 +1,19 @@
-import {
-  getProfileByUsername,
-  getUserPosts,
-  isFollowing,
-} from "@/actions/profile.action";
+// app/profile/[username]/page.tsx
+
+import { getProfileByUsername, getUserPosts } from "@/actions/profile.action";
 import { notFound } from "next/navigation";
-import ClientProfilePage from "./ClientProfilePage";
+import ClientProfiePage from "./ClientProfilePage";
+import type { Metadata } from "next";
 
+type PageProps = {
+  params: {
+    username: string;
+  };
+};
 
-export async function generateMetadata({ params }: { params: { username: string } }) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const user = await getProfileByUsername(params.username);
-  if (!user) return;
+  if (!user) return {};
 
   return {
     title: `${user.name ?? user.userName}`,
@@ -17,22 +21,11 @@ export async function generateMetadata({ params }: { params: { username: string 
   };
 }
 
-async function ProfilePageServer({ params }: { params: { username: string } }) {
+export default async function ProfilePage({ params }: PageProps) {
   const user = await getProfileByUsername(params.username);
-
   if (!user) notFound();
 
-  const [posts, isCurrentUserFollowing] = await Promise.all([
-    getUserPosts(user.id),
-    isFollowing(user.id),
-  ]);
+  const posts = await getUserPosts(user.id);
 
-  return (
-    <ClientProfilePage
-      user={user}
-      posts={posts}
-      isFollowing={isCurrentUserFollowing}
-    />
-  );
+  return <ClientProfiePage user={user} posts={posts} />;
 }
-export default ProfilePageServer;

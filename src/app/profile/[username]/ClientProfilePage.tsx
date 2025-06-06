@@ -36,10 +36,9 @@ type Posts = Awaited<ReturnType<typeof getUserPosts>>;
 interface ProfilePageClientProps {
   user: NonNullable<User>;
   posts: Posts;
-  isFollowing: boolean;
 }
 
-function ProfilePageClient({
+function ClientProfiePage({
   posts,
   user,
 }: ProfilePageClientProps) {
@@ -278,4 +277,5 @@ function ProfilePageClient({
     </div>
   );
 }
-export default ProfilePageClient;
+
+export default ClientProfiePage;

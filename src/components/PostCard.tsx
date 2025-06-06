@@ -15,7 +15,12 @@ import { Button } from "./ui/button";
 import { SignInButton, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { createComment, deleteComment, deletePost, toggleLike } from "@/actions/post.action";
+import {
+  createComment,
+  deleteComment,
+  deletePost,
+  toggleLike,
+} from "@/actions/post.action";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 // import Picker from "@emoji-mart/react";
 
@@ -35,23 +40,21 @@ import { Textarea } from "./ui/textarea";
 import Link from "next/link";
 import { PostCardPost } from "@/types";
 
-
 export default function PostCard({
   post,
   dbUserId,
 }: {
   post: PostCardPost;
   dbUserId?: string | null;
-}
-) {
+}) {
   const { user } = useUser();
-  
 
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [isCommenting, setisCommenting] = useState(false);
   const [hasLiked, sethasLiked] = useState(
-  post.likes.some((like) => like.userId === dbUserId));
+    post.likes.some((like) => like.userId === dbUserId)
+  );
   const [isLiking, setisLiking] = useState(false);
   const [optimisticLikes, setOptimisticLikes] = useState(post._count.likes);
   // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -63,7 +66,7 @@ export default function PostCard({
   // };
 
   const handleLike = async () => {
-    if(isLiking) return
+    if (isLiking) return;
     try {
       setisLiking(true);
       sethasLiked((prev: boolean) => !prev);
@@ -83,11 +86,10 @@ export default function PostCard({
     try {
       const newComment = await createComment(postId, content);
       if (newComment?.success) {
-        setisCommenting(true)
+        setisCommenting(true);
         setNewComment("");
         toast.success("Comment added successfully");
         setShowComments(true);
-        
       } else {
         toast.error(newComment?.error || "Failed to add comment");
       }
@@ -95,7 +97,7 @@ export default function PostCard({
       toast.error("Failed to add comment");
       console.error("Error adding comment:", error);
     } finally {
-      setisCommenting(false)
+      setisCommenting(false);
     }
 
     console.log("New comment added:", newComment);
@@ -110,7 +112,6 @@ export default function PostCard({
       console.error("Error deleting post:", error);
     }
   };
-
 
   return (
     <Card className="max-w-xl md:mx-auto mx-0 mt-10 bg-[#0F0F0F] border border-[#1F1F1F] shadow-xl">
@@ -128,16 +129,18 @@ export default function PostCard({
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <Link href={`/profile/${post.author.userName}`}>
-                  <h3 className="neue-medium md:block hidden text-white cursor-pointer">{post.author.name}</h3>
+                  <h3 className="neue-medium md:block hidden text-white cursor-pointer">
+                    {post.author.name}
+                  </h3>
                 </Link>
                 <Link href={`/profile/${post.author.userName}`}>
-                <p className="text-sm neue-roman text-gray-400 cursor-pointer">
-                  @{post.author.userName}
-                </p>
+                  <p className="text-sm neue-roman text-gray-400 cursor-pointer">
+                    @{post.author.userName}
+                  </p>
                 </Link>
               </div>
               <p className="text-sm neue-roman text-gray-400 flex items-center gap-1">
-                <DotIcon className="md:block hidden"/>
+                <DotIcon className="md:block hidden" />
                 {formatDistanceToNow(new Date(post.createdAt))} ago
               </p>
             </div>
@@ -177,14 +180,16 @@ export default function PostCard({
 
         {/* Post Image */}
         {post.image && (
-            <div className="rounded-lg overflow-hidden">
-              <Image 
-              fill 
-              src={post.image} 
-              alt="Post content" 
-              className="w-full h-auto object-cover" />
-            </div>
-          )}
+          <div className="rounded-lg overflow-hidden">
+            <Image
+              src={post.image}
+              alt="Post content"
+              width={600} // or any width you want
+              height={400}
+              className="w-full rounded-lg object-cover"
+            />
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex items-center pt-4 space-x-4">
@@ -257,15 +262,11 @@ export default function PostCard({
                           onClick={() => deleteComment(comment.id)}
                         />
                       )}
-
-
-                      
                     </div>
 
                     {/* Comment text */}
                     <p className="text-sm break-words mt-1">
                       {comment.content}
-                     
                     </p>
                   </div>
                 </div>
