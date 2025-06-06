@@ -96,25 +96,19 @@ type PostWithRelations = Prisma.PostsGetPayload<{
   };
 }>;
 
-export async function getPosts(): Promise<{
-  success: boolean;
-  posts?: PostWithRelations[];
-  error?: string;
-}> {
+export async function getPosts() {
   try {
     const posts = await prisma.posts.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
       include: {
         author: {
           select: {
             id: true,
             name: true,
-            userName: true,
             image: true,
-          },
-        },
-        likes: {
-          select: {
-            userId: true,
+            userName: true,
           },
         },
         comments: {
@@ -132,6 +126,11 @@ export async function getPosts(): Promise<{
             createdAt: "asc",
           },
         },
+        likes: {
+          select: {
+            userId: true,
+          },
+        },
         _count: {
           select: {
             likes: true,
@@ -139,15 +138,12 @@ export async function getPosts(): Promise<{
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
     });
 
-    return { success: true, posts };
+    return posts;
   } catch (error) {
-    console.error("Failed to get posts", (error as Error).message);
-    return { success: false, error: "Failed to get posts" };
+    console.log("Error in getPosts", error);
+    throw new Error("Failed to fetch posts");
   }
 }
 

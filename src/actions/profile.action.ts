@@ -1,7 +1,10 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { getDbUserId } from "./user.action";
 
 // Profile type with follower/following/post counts
 type UserProfile = Omit<
@@ -174,26 +177,53 @@ export async function getUserPosts(
 }
 
 // Update user profile
-export async function updateUserProfile({
-  userId,
-  bio,
-  location,
-  websiteUrl,
-  image,
-}: {
-  userId: string;
-  bio?: string;
-  location?: string;
-  websiteUrl?: string;
-  image?: string;
-}): Promise<void> {
+export async function updateUserProfile(formData: FormData) {
   try {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { bio, location, websiteUrl, image },
+    const { userId: clerkId } = await auth();
+    if (!clerkId) throw new Error("Unauthorized");
+
+    const name = formData.get("name") as string;
+    const bio = formData.get("bio") as string;
+    const location = formData.get("location") as string;
+    const websiteUrl = formData.get("website") as string;
+
+    const user = await prisma.user.update({
+      where: { clerkId },
+      data: {
+        name,
+        bio,
+        location,
+        websiteUrl,
+      },
     });
+
+    revalidatePath("/profile");
+    return { success: true, user };
   } catch (error) {
-    console.error("Error updating profile:", (error as Error).message);
-    throw new Error("Failed to update profile");
+    console.error("Error updating profile:", error);
+    return { success: false, error: "Failed to update profile" };
   }
 }
+
+// is Following
+export async function isFollowing(userId: string) {
+  try {
+    const currentUserId = await getDbUserId();
+    if (!currentUserId) return false;
+
+    const follow = await prisma.follows.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: currentUserId,
+          followingId: userId,
+        },
+      },
+    });
+
+    return !!follow;
+  } catch (error) {
+    console.error("Error checking follow status:", error);
+    return false;
+  }
+}
+

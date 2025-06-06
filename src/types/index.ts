@@ -91,6 +91,7 @@ export interface EditProfileProps {
   profileUser: EditProfileUser;
 }
 
+
 export interface PostCardProps {
   post: PostWithDetails;
   dbUserId?: string | null;
@@ -161,18 +162,37 @@ export interface CurrentUser {
   id: string;
 }
 
-export interface PostCardPost {
+export type PostCardPost = {
   id: string;
-  content: string;
+  content: string | null;
   image: string;
-  createdAt: string;
-  author: Author;
-  likes: Like[];
-  comments: Comment[];
+  createdAt: Date;
+  author: {
+    id: string;
+    image: string | null;
+    userName: string;
+    name: string;
+  };
+  comments: {
+    id: string;
+    authorId: string;
+    content: string;
+    createdAt: Date;
+    postId: string;
+    author: {
+      id: string;
+      image: string | null;
+      userName: string;
+      name: string;
+    };
+  }[];
+  likes: {
+    userId: string;
+  }[];
   _count: {
     likes: number;
-    comments: number;
   };
-}
+};
+
 
 

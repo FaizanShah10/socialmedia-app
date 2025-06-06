@@ -15,7 +15,7 @@ import { Button } from "./ui/button";
 import { SignInButton, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { createComment, deleteComment, deletePost, toggleLike } from "@/actions/post.action";
+import { createComment, deleteComment, deletePost, getPosts, toggleLike } from "@/actions/post.action";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 // import Picker from "@emoji-mart/react";
 
@@ -33,7 +33,8 @@ import {
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
 import Link from "next/link";
-import { Comment, PostCardPost } from "@/types";
+import { PostCardPost } from "@/types";
+
 
 export default function PostCard({
   post,
@@ -87,12 +88,15 @@ export default function PostCard({
         setNewComment("");
         toast.success("Comment added successfully");
         setShowComments(true);
+        
       } else {
         toast.error(newComment?.error || "Failed to add comment");
       }
     } catch (error) {
       toast.error("Failed to add comment");
       console.error("Error adding comment:", error);
+    } finally {
+      setisCommenting(false)
     }
 
     console.log("New comment added:", newComment);
@@ -170,17 +174,14 @@ export default function PostCard({
         </div>
 
         {/* Post Caption */}
-        <p className="text-white mt-6 neue-roman">{post.content}</p>
+        <p className="text-white mt-6 mb-5 neue-roman">{post.content}</p>
 
         {/* Post Image */}
-        <div className="rounded-lg overflow-hidden mt-4">
-          <Image
-            src={post.image || "/avatar.png"}
-            alt=""
-            className={`h-auto w-full object-cover `}
-            fill
-          />
-        </div>
+        {post.image && (
+            <div className="rounded-lg overflow-hidden">
+              <img src={post.image} alt="Post content" className="w-full h-auto object-cover" />
+            </div>
+          )}
 
         {/* Actions */}
         <div className="flex items-center pt-4 space-x-4">
@@ -225,7 +226,7 @@ export default function PostCard({
           <div className="space-y-4 pt-4 border-t">
             <div className="space-y-4">
               {/* DISPLAY COMMENTS */}
-              {post.comments.map((comment: Comment) => (
+              {post.comments.map((comment) => (
                 <div key={comment.id} className="flex space-x-3">
                   <Avatar className="size-8 flex-shrink-0">
                     <AvatarImage src={comment.author.image ?? "/avatar.png"} />

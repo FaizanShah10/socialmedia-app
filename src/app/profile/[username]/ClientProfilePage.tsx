@@ -1,62 +1,112 @@
 "use client";
 
-import type { CurrentUser, ProfileUser, PostCardPost } from "@/types";
-import { useEffect, useState } from "react";
+import { getProfileByUsername, getUserPosts, updateUserProfile } from "@/actions/profile.action";
+import { toggleFollow } from "@/actions/user.action";
+import PostCard from "@/components/PostCard";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { SignInButton } from "@clerk/nextjs";
-import { CalendarIcon, Edit, LinkIcon, MapPinIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { SignInButton, useUser } from "@clerk/nextjs";
 import { format } from "date-fns";
-import EditProfile from "./EditProfile";
+import {
+  CalendarIcon,
+  Edit,
+  EditIcon,
+  FileTextIcon,
+  HeartIcon,
+  LinkIcon,
+  MapPinIcon,
+} from "lucide-react";
+import { useState } from "react";
 import toast from "react-hot-toast";
-import { getUserPosts } from "@/actions/profile.action";
-import PostCard from "@/components/PostCard";
+import EditProfile from "./EditProfile";
 import FollowButton from "@/components/FollowButton";
 
+type User = Awaited<ReturnType<typeof getProfileByUsername>>;
+type Posts = Awaited<ReturnType<typeof getUserPosts>>;
 
-const ClientProfilePage = ({
-  currentUser,
-  profileUser,
-}: {
-  currentUser: CurrentUser | null;
-  profileUser: ProfileUser;
-}) => {
+interface ProfilePageClientProps {
+  user: NonNullable<User>;
+  posts: Posts;
+  isFollowing: boolean;
+}
+
+function ProfilePageClient({
+  isFollowing: initialIsFollowing,
+  posts,
+  user,
+}: ProfilePageClientProps) {
+  const { user: currentUser } = useUser();
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [open, setOpen] = useState(false);
-  const [posts, setPosts] = useState<PostCardPost[]>([]);
+  const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
 
-  const isOwnProfile = currentUser?.id === profileUser?.id;
-  const formattedDate = format(new Date(profileUser?.createdAt), "MMMM yyyy");
+  const [editForm, setEditForm] = useState({
+    name: user.name || "",
+    bio: user.bio || "",
+    location: user.location || "",
+    website: user.websiteUrl || "",
+  });
 
-  useEffect(() => {
-  const fetchPosts = async () => {
-    try {
-      const post = await getUserPosts(profileUser.id);
-      setPosts(posts);
-    } catch {
-      toast.error("Error Fetching Posts");
+  const handleEditSubmit = async () => {
+    const formData = new FormData();
+    Object.entries(editForm).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    const result = await updateUserProfile(formData);
+    if (result.success) {
+      setShowEditDialog(false);
+      toast.success("Profile updated successfully");
     }
   };
 
-  if (profileUser?.id) {
-    fetchPosts();
-  }
-}, [profileUser?.id, posts]);
 
 
- 
+  const handleFollow = async () => {
+    if (!currentUser) return;
+
+    try {
+      setIsUpdatingFollow(true);
+      await toggleFollow(user.id);
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      toast.error("Failed to update follow status");
+    } finally {
+      setIsUpdatingFollow(false);
+    }
+  };
+
+  const isOwnProfile =
+    currentUser?.username === user.userName ||
+    currentUser?.emailAddresses[0].emailAddress.split("@")[0] === user.userName;
+
+  const formattedDate = format(new Date(user.createdAt), "MMMM yyyy");
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <Card className="bg-card">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:gap-12">
+    <div className="max-w-3xl mx-auto">
+      <div className="grid grid-cols-1 gap-6">
+        <div className="w-full max-w-lg mx-auto">
+          <Card className="bg-card">
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:gap-12">
             {/* Left - Avatar */}
             <div className="flex justify-center sm:block">
               <Avatar className="w-36 h-36">
-                <AvatarImage src={profileUser?.image ?? "/avatar.png"} />
+                <AvatarImage src={user?.image ?? "/avatar.png"} />
               </Avatar>
             </div>
 
@@ -68,7 +118,7 @@ const ClientProfilePage = ({
                   <div key={key} className="flex items-center">
                     <div className="text-center">
                       <div className="font-semibold">
-                        {profileUser._count[key].toLocaleString()}
+                        {user._count[key].toLocaleString()}
                       </div>
                       <div className="text-sm text-muted-foreground capitalize">
                         {key}
@@ -87,13 +137,13 @@ const ClientProfilePage = ({
               {/* Name & Username & Bio */}
               <div className="text-center sm:text-left">
                 <h1 className="text-xl font-bold">
-                  {profileUser?.name ?? profileUser?.userName}
+                  {user?.name ?? user?.userName}
                 </h1>
                 <p className="text-muted-foreground">
-                  @{profileUser?.userName}
+                  @{user?.userName}
                 </p>
-                {profileUser?.bio && (
-                  <p className="mt-1 text-sm">{profileUser.bio}</p>
+                {user?.bio && (
+                  <p className="mt-1 text-sm">{user.bio}</p>
                 )}
               </div>
 
@@ -114,7 +164,7 @@ const ClientProfilePage = ({
                     <EditProfile
                       open={open}
                       setOpen={setOpen}
-                      profileUser={profileUser}
+                      profileUser={user}
                     />
                   </>
                 ) : (
@@ -124,26 +174,26 @@ const ClientProfilePage = ({
 
               {/* Details */}
               <div className="w-full mt-6 space-y-2 text-sm text-muted-foreground">
-                {profileUser?.location && (
+                {user?.location && (
                   <div className="flex items-center">
                     <MapPinIcon className="size-4 mr-2" />
-                    {profileUser.location}
+                    {user.location}
                   </div>
                 )}
-                {profileUser?.websiteUrl && (
+                {user?.websiteUrl && (
                   <div className="flex items-center">
                     <LinkIcon className="size-4 mr-2" />
                     <a
                       href={
-                        profileUser.websiteUrl.startsWith("http")
-                          ? profileUser.websiteUrl
-                          : `https://${profileUser.websiteUrl}`
+                        user.websiteUrl.startsWith("http")
+                          ? user.websiteUrl
+                          : `https://${user.websiteUrl}`
                       }
                       className="hover:underline"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {profileUser.websiteUrl}
+                      {user.websiteUrl}
                     </a>
                   </div>
                 )}
@@ -154,9 +204,11 @@ const ClientProfilePage = ({
               </div>
             </div>
           </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Tabs Section */}
-          <div className="mt-6">
+        <div className="mt-6">
             <Tabs defaultValue="posts" className="w-full">
               <TabsList className="w-full justify-around">
                 <TabsTrigger value="posts" className="w-full text-center">
@@ -190,10 +242,61 @@ const ClientProfilePage = ({
               </TabsContent>
             </Tabs>
           </div>
-        </CardContent>
-      </Card>
+
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Edit Profile</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  name="name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Your name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Bio</Label>
+                <Textarea
+                  name="bio"
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  className="min-h-[100px]"
+                  placeholder="Tell us about yourself"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Location</Label>
+                <Input
+                  name="location"
+                  value={editForm.location}
+                  onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                  placeholder="Where are you based?"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Website</Label>
+                <Input
+                  name="website"
+                  value={editForm.website}
+                  onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
+                  placeholder="Your personal website"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button onClick={handleEditSubmit}>Save Changes</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
-};
-
-export default ClientProfilePage;
+}
+export default ProfilePageClient;

@@ -36,24 +36,27 @@ const EditProfile = ({ open, setOpen, profileUser }: EditProfileProps) => {
   });
 
   const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      await updateUserProfile({
-        userId: profileUser.id,
-        bio,
-        location,
-        websiteUrl,
-        image,
-      });
-      toast.success("Profile updated successfully");
-      setOpen(false);
-      router.refresh();
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  try {
+    setIsSaving(true);
+
+    const formData = new FormData();
+    formData.append("name", profileUser.name);
+    formData.append("bio", bio);
+    formData.append("location", location);
+    formData.append("website", websiteUrl);
+
+    await updateUserProfile(formData);
+
+    toast.success("Profile updated successfully");
+    setOpen(false);
+    router.refresh();
+  } catch {
+    toast.error("Something went wrong");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

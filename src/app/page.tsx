@@ -11,7 +11,7 @@ import { PostWithDetails } from '@/types'
 const HomePage = async () => {
 
 
-  const {posts} = await getPosts()
+  const posts = await getPosts()
   const dbUserId = await getDbUserId()
 
   if(!posts) return null

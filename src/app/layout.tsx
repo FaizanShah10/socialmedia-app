@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/Navbar/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Toaster } from "react-hot-toast";
-import LocoScrollWrapper from "@/components/LocoScrollWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +40,7 @@ export default function RootLayout({
             <Navbar />
 
             {/* Locomotive Scroll Wrapper */}
-            <LocoScrollWrapper>
+            
               <main className="py-8">
                 <div className="max-w-7xl mx-auto px-4">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -52,7 +51,7 @@ export default function RootLayout({
                   </div>
                 </div>
               </main>
-            </LocoScrollWrapper>
+            
 
             <Toaster />
           </ThemeProvider>
