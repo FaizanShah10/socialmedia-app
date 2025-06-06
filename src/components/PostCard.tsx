@@ -15,7 +15,7 @@ import { Button } from "./ui/button";
 import { SignInButton, useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { createComment, deleteComment, deletePost, getPosts, toggleLike } from "@/actions/post.action";
+import { createComment, deleteComment, deletePost, toggleLike } from "@/actions/post.action";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 // import Picker from "@emoji-mart/react";
 
@@ -51,8 +51,7 @@ export default function PostCard({
   const [showComments, setShowComments] = useState(false);
   const [isCommenting, setisCommenting] = useState(false);
   const [hasLiked, sethasLiked] = useState(
-  post.likes.some((like) => like.userId === dbUserId)
-);
+  post.likes.some((like) => like.userId === dbUserId));
   const [isLiking, setisLiking] = useState(false);
   const [optimisticLikes, setOptimisticLikes] = useState(post._count.likes);
   // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -179,7 +178,11 @@ export default function PostCard({
         {/* Post Image */}
         {post.image && (
             <div className="rounded-lg overflow-hidden">
-              <img src={post.image} alt="Post content" className="w-full h-auto object-cover" />
+              <Image 
+              fill 
+              src={post.image} 
+              alt="Post content" 
+              className="w-full h-auto object-cover" />
             </div>
           )}
 
