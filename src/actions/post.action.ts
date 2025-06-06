@@ -3,13 +3,12 @@
 import prisma from "@/lib/prisma";
 import { getDbUserId } from "./user.action";
 import { revalidatePath } from "next/cache";
-import { Prisma, Posts, Comments } from "@prisma/client";
+import {Posts, Comments } from "@prisma/client";
 
 // Create a post
-export async function createPost(
-  postContent: string,
-  postImageUrl: string
-): Promise<{ success: boolean; post?: Posts; error?: string } | null> {
+export async function createPost(postContent: string, postImageUrl: string) 
+: 
+Promise<{ success: boolean; post?: Posts; error?: string } | null> {
   const userId = await getDbUserId();
   if (!userId) return null;
 

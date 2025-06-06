@@ -1,7 +1,6 @@
 "use client";
 
 import { getProfileByUsername, getUserPosts, updateUserProfile } from "@/actions/profile.action";
-import { toggleFollow } from "@/actions/user.action";
 import PostCard from "@/components/PostCard";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -41,7 +40,6 @@ interface ProfilePageClientProps {
 }
 
 function ProfilePageClient({
-  isFollowing: initialIsFollowing,
   posts,
   user,
 }: ProfilePageClientProps) {
