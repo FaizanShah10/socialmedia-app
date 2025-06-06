@@ -60,42 +60,6 @@ export async function deletePost(
 }
 
 // Get posts
-type PostWithRelations = Prisma.PostsGetPayload<{
-  include: {
-    author: {
-      select: {
-        id: true;
-        name: true;
-        userName: true;
-        image: true;
-      };
-    };
-    likes: {
-      select: {
-        userId: true;
-      };
-    };
-    comments: {
-      include: {
-        author: {
-          select: {
-            id: true;
-            userName: true;
-            image: true;
-            name: true;
-          };
-        };
-      };
-    };
-    _count: {
-      select: {
-        likes: true;
-        comments: true;
-      };
-    };
-  };
-}>;
-
 export async function getPosts() {
   try {
     const posts = await prisma.posts.findMany({

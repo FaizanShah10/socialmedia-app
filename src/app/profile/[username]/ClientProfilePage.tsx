@@ -47,9 +47,7 @@ function ProfilePageClient({
 }: ProfilePageClientProps) {
   const { user: currentUser } = useUser();
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [open, setOpen] = useState(false);
-  const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
 
   const [editForm, setEditForm] = useState({
     name: user.name || "",
@@ -72,20 +70,6 @@ function ProfilePageClient({
   };
 
 
-
-  const handleFollow = async () => {
-    if (!currentUser) return;
-
-    try {
-      setIsUpdatingFollow(true);
-      await toggleFollow(user.id);
-      setIsFollowing(!isFollowing);
-    } catch {
-      toast.error("Failed to update follow status");
-    } finally {
-      setIsUpdatingFollow(false);
-    }
-  };
 
   const isOwnProfile =
     currentUser?.username === user.userName ||
